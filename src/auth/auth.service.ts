@@ -49,13 +49,19 @@ export class AuthService {
     const saved = await this.userRepo.save(user);
     const { password: _password, ...result } = saved;
     void _password;
-    return { code: 200, message: '注册成功', data: result };
+    return { code: 200, msg: '注册成功', data: result };
   }
 
   async login(username: string, password: string) {
     const user = await this.userRepo.findOne({
       where: { username },
-      select: { id: true, username: true, email: true, password: true },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        password: true,
+        tokenVersion: true,
+      },
     });
 
     if (!user) {
@@ -67,14 +73,43 @@ export class AuthService {
       throw new UnauthorizedException('用户名或密码错误');
     }
 
-    const payload = { sub: user.id, username: user.username };
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      tokenVersion: user.tokenVersion,
+    };
     const token = this.jwtService.sign(payload);
 
     return {
       code: 200,
-      message: '登录成功',
+      msg: '登录成功',
       data: { token },
     };
+  }
+
+  async logout(
+    userId: number,
+  ): Promise<{ code: number; msg: string; data: null }> {
+    await this.userRepo.increment({ id: userId }, 'tokenVersion', 1);
+    return { code: 200, msg: '退出登录成功', data: null };
+  }
+
+  async resetPassword(username: string, newPassword: string) {
+    const user = await this.userRepo.findOne({
+      where: { username },
+      select: { id: true, password: true, tokenVersion: true },
+    });
+    if (!user) {
+      throw new UnauthorizedException('用户不存在');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    // 旧 token 全部失效
+    user.tokenVersion += 1;
+    await this.userRepo.save(user);
+
+    return { code: 200, msg: '密码重置成功，请重新登录', data: null };
   }
 
   async getProfile(userId: number) {
@@ -88,7 +123,7 @@ export class AuthService {
 
     return {
       code: 200,
-      message: '获取用户信息成功',
+      msg: '获取用户信息成功',
       data: { user },
     };
   }

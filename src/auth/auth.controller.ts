@@ -1,11 +1,11 @@
 import { Controller, Post, Get, Body, Req } from '@nestjs/common';
 import type { Request } from 'express';
 import { AuthService } from './auth.service';
-import { Public } from './public.decorator';
 import type { RegisterParams } from './auth.service';
+import { Public } from './public.decorator';
 
 interface AuthenticatedRequest extends Request {
-  user?: { sub: number; username: string };
+  user?: { sub: number; username: string; tokenVersion: number };
 }
 
 @Controller()
@@ -28,8 +28,23 @@ export class AuthController {
   async getProfile(@Req() req: AuthenticatedRequest) {
     const userId = req.user?.sub;
     if (!userId) {
-      return { code: 401, message: '未登录或 Token 无效' };
+      return { code: 401, msg: '未登录或 Token 无效' };
     }
     return this.authService.getProfile(userId);
+  }
+
+  @Public()
+  @Post('reset-password')
+  resetPassword(@Body() body: { username: string; password: string }) {
+    return this.authService.resetPassword(body.username, body.password);
+  }
+
+  @Post('logout')
+  logout(@Req() req: AuthenticatedRequest) {
+    const userId = req.user?.sub;
+    if (!userId) {
+      return { code: 401, msg: '未登录或 Token 无效' };
+    }
+    return this.authService.logout(userId);
   }
 }

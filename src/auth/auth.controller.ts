@@ -39,6 +39,12 @@ export class AuthController {
     return this.authService.resetPassword(body.username, body.password);
   }
 
+  @Public()
+  @Get('generate-uid')
+  generateUid() {
+    return this.authService.generateUid();
+  }
+
   @Post('logout')
   logout(@Req() req: AuthenticatedRequest) {
     const userId = req.user?.sub;

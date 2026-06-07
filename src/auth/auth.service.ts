@@ -8,10 +8,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
+import { generateSnowflakeId } from '../common/snowflake.util';
 
 export interface RegisterParams {
   username: string;
   password: string;
+  uid?: string;
   email?: string;
   nickname?: string;
   avatar?: string;
@@ -28,7 +30,7 @@ export class AuthService {
   ) {}
 
   async register(params: RegisterParams) {
-    const { username, password, email, nickname, avatar, phone, gender } =
+    const { username, password, uid, email, nickname, avatar, phone, gender } =
       params;
 
     const exists = await this.userRepo.findOne({ where: { username } });
@@ -36,8 +38,16 @@ export class AuthService {
       throw new ConflictException('用户名已存在');
     }
 
+    if (uid) {
+      const uidExists = await this.userRepo.findOne({ where: { uid } });
+      if (uidExists) {
+        throw new ConflictException('该唯一 ID 已被使用');
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = this.userRepo.create({
+      uid: uid || undefined,
       username,
       email: email || '',
       password: hashedPassword,
@@ -92,6 +102,11 @@ export class AuthService {
   ): Promise<{ code: number; msg: string; data: null }> {
     await this.userRepo.increment({ id: userId }, 'tokenVersion', 1);
     return { code: 200, msg: '退出登录成功', data: null };
+  }
+
+  generateUid() {
+    const uid = generateSnowflakeId();
+    return { code: 200, msg: '生成成功', data: { uid } };
   }
 
   async resetPassword(username: string, newPassword: string) {

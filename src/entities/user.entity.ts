@@ -51,6 +51,9 @@ export class User {
   @Column({ default: 0, select: false })
   tokenVersion!: number;
 
+  @Column({ type: 'bigint', unique: true, nullable: true })
+  uid!: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 

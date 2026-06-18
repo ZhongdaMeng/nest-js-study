@@ -34,7 +34,7 @@ jobs:
           export NVM_DIR="$HOME/.nvm"
           source "$NVM_DIR/nvm.sh"
           cd ~/projects/nest-js-study
-          pm2 reload nest-api || pm2 start dist/main.js --name nest-api
+          NODE_ENV=development pm2 reload nest-api || NODE_ENV=development pm2 start dist/main.js --name nest-api
 
       - name: Deploy to JD Cloud
         run: |

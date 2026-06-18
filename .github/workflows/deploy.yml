@@ -15,8 +15,9 @@ jobs:
           export NVM_DIR="$HOME/.nvm"
           source "$NVM_DIR/nvm.sh"
           nvm use default
-          corepack enable
-          corepack prepare pnpm@latest --activate
+          npm install -g pnpm
+          NODE_BIN="$(dirname $(which node))"
+          echo "$NODE_BIN" >> $GITHUB_PATH
           node -v && pnpm -v
 
       - name: Install and Build

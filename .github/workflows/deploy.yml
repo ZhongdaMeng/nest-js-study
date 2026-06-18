@@ -26,7 +26,7 @@ jobs:
       - name: Deploy to notebook
         run: |
           mkdir -p ~/projects/nest-js-study
-          rsync -av --delete --exclude node_modules --exclude '.env*' dist/ package.json pnpm-lock.yaml ~/projects/nest-js-study/
+          rsync -av --delete --exclude node_modules --exclude '.env*' --exclude pnpm-workspace.yaml dist/ package.json pnpm-lock.yaml ~/projects/nest-js-study/
           cd ~/projects/nest-js-study && pnpm install --prod
 
       - name: Reload PM2 on notebook
@@ -37,7 +37,7 @@ jobs:
 
       - name: Deploy to JD Cloud
         run: |
-          rsync -av --delete --exclude node_modules --exclude '.env*' dist/ package.json pnpm-lock.yaml root@111.228.12.78:~/projects/nest-js-study/
+          rsync -av --delete --exclude node_modules --exclude '.env*' --exclude pnpm-workspace.yaml dist/ package.json pnpm-lock.yaml root@111.228.12.78:~/projects/nest-js-study/
           ssh root@111.228.12.78 'bash -s' << 'EOF'
           export NVM_DIR="$HOME/.nvm"
           source "$NVM_DIR/nvm.sh"

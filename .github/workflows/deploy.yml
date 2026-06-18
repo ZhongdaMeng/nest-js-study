@@ -1,4 +1,4 @@
-name: Deploy NestJS API
+name: Deploy
 
 on:
   push:
@@ -7,6 +7,42 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
+    labels: [backend, nest]
     steps:
-      - name: Run deploy script
-        run: /home/mzdmeng/deploy.sh nest-js-study
+      - uses: actions/checkout@v4
+
+      - name: Setup Node and pnpm
+        run: |
+          export NVM_DIR="$HOME/.nvm"
+          source "$NVM_DIR/nvm.sh"
+          nvm use default
+          corepack enable
+          corepack prepare pnpm@latest --activate
+          node -v && pnpm -v
+
+      - name: Install and Build
+        run: pnpm install && pnpm build
+
+      - name: Deploy to notebook
+        run: |
+          mkdir -p ~/projects/nest-js-study
+          rsync -av --delete --exclude node_modules --exclude .env dist/ package.json pnpm-lock.yaml ~/projects/nest-js-study/
+          cd ~/projects/nest-js-study && pnpm install --prod
+
+      - name: Reload PM2 on notebook
+        run: |
+          export NVM_DIR="$HOME/.nvm"
+          source "$NVM_DIR/nvm.sh"
+          cd ~/projects/nest-js-study
+          pm2 reload nest-api || pm2 start dist/main.js --name nest-api
+
+      - name: Deploy to JD Cloud
+        run: |
+          rsync -av --delete --exclude node_modules --exclude .env dist/ package.json pnpm-lock.yaml root@111.228.12.78:~/projects/nest-js-study/
+          ssh root@111.228.12.78 'bash -s' << 'EOF'
+          export NVM_DIR="$HOME/.nvm"
+          source "$NVM_DIR/nvm.sh"
+          cd ~/projects/nest-js-study
+          pnpm install --prod
+          pm2 reload nest-api
+          EOF

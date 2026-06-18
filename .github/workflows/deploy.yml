@@ -34,7 +34,15 @@ jobs:
           export NVM_DIR="$HOME/.nvm"
           source "$NVM_DIR/nvm.sh"
           cd ~/projects/nest-js-study
-          NODE_ENV=development           DB_HOST=localhost           DB_PORT=3306           DB_USERNAME=mzdmeng           DB_PASSWORD=Zz28151...           DB_DATABASE=learn_fullstack_dev           JWT_SECRET=mytab-dev-secret-key-2026           PORT=8080           pm2 reload nest-api ||           NODE_ENV=development           DB_HOST=localhost           DB_PORT=3306           DB_USERNAME=mzdmeng           DB_PASSWORD=Zz28151...           DB_DATABASE=learn_fullstack_dev           JWT_SECRET=mytab-dev-secret-key-2026           PORT=8080           pm2 start main.js --name nest-api
+          export NODE_ENV=development
+          export DB_HOST=localhost
+          export DB_PORT=3306
+          export DB_USERNAME=mzdmeng
+          export DB_PASSWORD=***
+          export DB_DATABASE=learn_fullstack_dev
+          export JWT_SECRET=mytab-...2026
+          export PORT=8080
+          pm2 reload nest-api || pm2 start main.js --name nest-api
 
       - name: Deploy to JD Cloud
         run: |
